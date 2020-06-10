@@ -185,13 +185,26 @@
 
     <!-- Tab links -->
     <div class="tab" id='tab'>
-        <button class="tablinks" data-number="0" id="log_ipaccess_tab">IP Access Logs</button>
-        <button class="tablinks" data-number="0" id="log_portscan_tab">Portscan Logs</button>
+        <!-- BEWARE! order is inverted... -->
+        <button class="tablinks active" id="prefs_tab" >Prefs</button>
         <button class="tablinks" data-number="0" id="log_rebinding_tab">Rebinding Logs</button>
-        <button class="tablinks" id="prefs_tab">Prefs</button>
+        <button class="tablinks" data-number="0" id="log_portscan_tab">Portscan Logs</button>
+        <button class="tablinks" data-number="0" id="log_ipaccess_tab">IP Access Logs</button>
     </div>
 
-    <!-- Tab content -->
+        <!-- Tab content Rebinding Logs -->
+        <div id="log_rebinding_tab" class="tabcontent">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Host</th>
+                        <th>IPs</th>
+                        <th>From Host</th>
+                </thead>
+                <tbody> </tbody>
+            </table>
+        </div>
+    <!-- Tab content Portscan Logs -->
     <div id="log_portscan_tab" class="tabcontent">
         <table>
             <thead>
@@ -203,28 +216,32 @@
             <tbody> </tbody>
         </table>
     </div>
-    <!-- Tab content -->
+    <!-- Tab content Private IP Access Logs -->
     <div id="log_ipaccess_tab" class="tabcontent">
         <table>
             <thead>
                 <tr>
-                    <th>IP</th>
+                    <th>Target IP:Port</th>
+                    <th>Target Host</th>
                     <th>From Host</th>
             </thead>
             <tbody> </tbody>
         </table>
     </div>
 
-    <div id="prefs_tab" class="tabcontent">
+    <div id="prefs_tab" class="tabcontent" >
         <ul id="navbar">
             <li><label for="threshold">Portscan Treshold</label>
-                <!-- <input type="range" id="vol" name="vol" min="0" max="50"> -->
                 <input min="3" max="65535" type="number" id="threshold" value="">
             </li>
-            <li><input type="checkbox" name="checkbox" id="notification_enable" class="cm-toggle"> <label
-                    for="notification_enable">Enable Window Notification </label></li>
-            <li><input type="checkbox" name="checkbox" id="debug_enable" class="cm-toggle"> <label
-                    for="debug_enable">Enable Debug Log</label></li>
+            <li>
+                <input type="checkbox" name="checkbox" id="notification_enable" class="cm-toggle">
+                <label for="notification_enable">Enable Window Notification </label>
+            </li>
+            <li>
+                <input type="checkbox" name="checkbox" id="debug_enable" class="cm-toggle">
+                <label for="debug_enable">Enable Debug Log</label>
+            </li>
         </ul>
     </div>
 

@@ -39,7 +39,9 @@ var resolvedHostnames = Object.create(null);
     [IP]: 
     [
       {
-        "initiator": initiator_host
+        "initiator": initiator_host,
+        "target": target_url.hostname,
+        "port": target_ip_port,
         "tabId": XX
       }
      , ...
@@ -53,7 +55,7 @@ var requestedIPs = Object.create(null);
     [port]: {
       [target_url.hostname]: [
         {
-          initiator_origin: initiator_url.origin || undefined,
+          initiator: initiator_url.hostname || undefined,
           tabId: reqMap.tabId
          }
       ]
@@ -67,11 +69,13 @@ var portScanMap = Object.create(null);
  * {
     [hostname]: {
       private_ips:[]
-      public_ips:[]
+      public_ips:[],
+      initiator: initiator_hostname,
+      tabId: request.tabId
     }
 }
  */
-var reboundedHostnames = Object.create(null);
+var reboundHostnamesMap = Object.create(null);
 
 
 // Private IPs regex
@@ -79,6 +83,11 @@ var reboundedHostnames = Object.create(null);
 // https://developer.chrome.com/extensions/webRequest
 const pvt_ip_reg = /(^127\.)|(^192\.168\.)|(^10\.)|(^172\.1[6-9]\.)|(^172\.2[0-9]\.)|(^172\.3[0-1]\.)|(^::1$)|(^[fF][cCdD])/;
 const ip_reg = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
+
+// Event types
+const EVENT_PORTSCAN = "ps";
+const EVENT_IP = "ip";
+const EVENT_REBIND = "dns";
 
 //////////////////////////////////////////////////////////////
 // Preferences methods
@@ -127,10 +136,11 @@ function parseUrl(url) {
   try {
     const p = new URL(url);
     return {
-      origin: p.origin,
-      protocol: p.protocol,
       hostname: p.hostname,
-      port: p.port || p.protocol
+      port: p.port || p.protocol,
+      // Maybe these won't be useful
+      origin: p.origin,
+      protocol: p.protocol
     };
   } catch (exc) {
     debuglog(exc, url);
@@ -171,26 +181,14 @@ function setResolvedHostname(hostname, ip, is_private_ip) {
   }
 }
 
-function maybeRebinding() {
-
-  var foundRebinding = false;
-  for (let [host, ips] of Object.entries(resolvedHostnames)) {
-     if(ips.private_ips.length > 0 && ips.public_ips.length > 0){
-      reboundedHostnames[host] = ips;
-      foundRebinding = true;
-     }
-  }
-  if(foundRebinding){
-    notify(`Found possible rebinding attack! on ${Object.keys(reboundedHostnames)}`);
-  }
-}
-
 function setRequestedIP(ip, request) {
   const initiator_hostname = request.initiator_url && request.initiator_url.hostname;
   //// Store infos about who and what
   requestedIPs[ip] = requestedIPs[ip] || [];
   requestedIPs[ip].push({
     initiator: initiator_hostname,
+    target: request.target_url.hostname,
+    port: request.target_url.port,
     tabId: request.tabId
   });
 }
@@ -215,27 +213,27 @@ function debuglog() {
 ///////////////////////////////////////
 ////// check functions
 
-/// add 
+// check for portscan attemps
 function maybePortScan(reqMap) {
+
   if (!portScanMap[reqMap.target_url.port]) {
     portScanMap[reqMap.target_url.port] = Object.create(null);
   }
   push(portScanMap[reqMap.target_url.port], reqMap.target_url.hostname, {
-    initiator_origin: reqMap.initiator_url ? reqMap.initiator_url.origin : undefined,
+    initiator: reqMap.initiator_url ? reqMap.initiator_url.hostname : "undefined",
     tabId: reqMap.tabId
   });
 
   if (Object.keys(portScanMap).length > prefs.number_of_port_trigger) {
     debuglog("PortScan!", portScanMap);
-    notify(`There might be a port scan: ${Object.keys(portScanMap).length}`);
+    notify(`There might be a port scan: ${Object.keys(portScanMap).length}`, EVENT_PORTSCAN);
   }
 }
 
+// check for access to private IPs attemps
 function maybeInternalAccess(ip, request) {
   const initiator_hostname = request.initiator_url && request.initiator_url.hostname;
   const requested_is_private = is_private_ip(ip);
-
-  setResolvedHostname(ip, request.target_url.hostname, requested_is_private);
 
   // If responding IP is internal and initiator does not match it then we have a problem..maybe
   if (requested_is_private &&
@@ -253,7 +251,33 @@ function maybeInternalAccess(ip, request) {
     //   tabId: request.tabId
     // });
     setRequestedIP(ip, request);
-    notify(msg);
+    notify(msg, EVENT_IP);
+  }
+}
+
+// check for access to DNS rebinding attemps
+// Rebinding will trigger on Private IPs only.
+// So http://www.alf.nu/BrowserCacheAndDnsRebinding will not be alerted
+function maybeRebinding(ip, request) {
+  const initiator_hostname = request.initiator_url && request.initiator_url.hostname;
+  const requested_is_private = is_private_ip(ip);
+
+  setResolvedHostname(request.target_url.hostname, ip, requested_is_private);
+
+  var foundRebinding = false;
+  for (let [host, ips] of Object.entries(resolvedHostnames)) {
+    if (ips.private_ips.length > 0 && ips.public_ips.length > 0) {
+      reboundHostnamesMap[host] = {
+        private_ips: ips.private_ips,
+        public_ips: ips.public_ips,
+        initiator: initiator_hostname,
+        tabId: request.tabId
+      };
+      foundRebinding = true;
+    }
+  }
+  if (foundRebinding) {
+    notify(`Found possible rebinding attack! on ${Object.keys(reboundHostnamesMap)}`, EVENT_REBIND);
   }
 }
 
@@ -263,17 +287,21 @@ addEventListener("message", onNotify);
 
 var extensionURL = `chrome-extension://${chrome.runtime.id}`;
 
-function notify(msg) {
-  postMessage(msg);
+function notify(msg, type) {
+  postMessage({
+    msg,
+    type
+  });
 }
 
 function onNotify({
   origin,
   data
 }) {
-  var msg = data;
+  var msg = data.msg;
+  var type = data.type;
   if (origin === extensionURL) {
-    setBadges();
+    setBadges(10, type);
     if (prefs.os_notifications_enabled)
       chrome.notifications.create(
         'name-for-notification', {
@@ -296,11 +324,20 @@ function updateToolTip() {
   });
 }
 
-
-function setBadges(times) {
-
-  setBadgeForIP();
-  setBadgeForPortScan(Object.keys(portScanMap).length);
+function setBadges(times, eventtype) {
+  switch (eventtype) {
+    case EVENT_IP:
+      setBadgeForIP();
+      break;
+    case EVENT_REBIND:
+      setBadgeForRebinding();
+      break;
+    case EVENT_PORTSCAN:
+      setBadgeForPortScan(Object.keys(portScanMap).length);
+      break;
+    default:
+      console.error("UNEXPECTED EVENT", eventtype);
+  }
 }
 
 function setBadgeForIP() {
@@ -321,13 +358,14 @@ function setBadgeForPortScan(data) {
   });
 }
 
-
-chrome.browserAction.onClicked.addListener(
-  function (tab) {
-
-  }
-);
-
+function setBadgeForRebinding() {
+  chrome.browserAction.setBadgeBackgroundColor({
+    color: [255, 100, 0, 230]
+  });
+  chrome.browserAction.setBadgeText({
+    text: 'DNS!'
+  });
+}
 ///////////////////////////////////////
 /// WebRequest Listeners 
 
@@ -357,24 +395,13 @@ chrome.webRequest.onBeforeRequest.addListener(function (details) {
 chrome.webRequest.onResponseStarted.addListener(function (details) {
   if (details.tabId !== -1) {
     const requestInfo = requestMap[details.requestId];
+
     debuglog(details, requestInfo);
+
     maybeInternalAccess(details.ip, requestInfo);
+
+    maybeRebinding(details.ip, requestInfo);
+
     delete requestMap[details.requestId];
   }
 }, FILTER_ALL_URLS);
-
-/*
-chrome.webRequest.onErrorOccurred.addListener(
-  function (details) {
-
-    console.log("Error:", details);
-  }, FILTER_ALL_URLS
-);
-
-chrome.webRequest.onSendHeaders.addListener(
-  function(details) {
-
-    console.log("OnBefore",details);
-  }, FILTER_ALL_URLS
-  );
-*/

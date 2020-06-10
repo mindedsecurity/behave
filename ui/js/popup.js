@@ -1,12 +1,88 @@
 'use strict';
 const MAX_PORT = 0xffff;
 const MIN_PORT = 1;
+
+function escapeHTML(str) {
+  return str.toString().replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace().replace(/'/g, "&#39;")
+}
+
+// PortScan Table 
+function showPortScanData(data) {
+
+  var tbody = document.querySelector('#log_portscan_tab  tbody');
+  var tr = '<tr>';
+  Object.getOwnPropertyNames(data).forEach(function (port) {
+    Object.getOwnPropertyNames(data[port]).forEach(hostname => {
+      tr += `<td>${escapeHTML(port)}</td>
+              <td>${escapeHTML(hostname)}</td><td>`;
+      data[port][hostname].forEach(initiator_data => {
+        tr += `<a href="#" id="tabids" data-tabid="${escapeHTML(initiator_data.tabId)}">
+              ${escapeHTML(initiator_data.initiator)}</a><br>`;
+      });
+      tr += '</td></tr>';
+    });
+  });
+  tbody.innerHTML = tr;
+}
+
+// IPAccess Table 
+function showIPAccessData(data) {
+  var tbody = document.querySelector('#log_ipaccess_tab  tbody');
+  var tr = '<tr>';
+  Object.getOwnPropertyNames(data).forEach(function (ip) {
+    for (var i = 0; i < data[ip].length; i++) {
+      tr += `<td>${escapeHTML(ip+":"+data[ip][i].port)}</td>
+              <td>${escapeHTML(data[ip][i].target)}</td>
+              <td>
+              <a href="#" id="tabids" data-tabid="${escapeHTML(data[ip][i].tabId)}">
+              ${escapeHTML(data[ip][i].initiator)}</a></td>
+              </tr>`;
+      tbody.innerHTML += tr;
+    }
+  });
+}
+
+// Rebind Table 
+function showReboundData(data) {
+  var tbody = document.querySelector('#log_rebinding_tab  tbody');
+  var tr = '<tr>';
+  Object.getOwnPropertyNames(data).forEach(function (hostname) {
+      tr += `<td>${escapeHTML(hostname)}</td>
+              <td>${escapeHTML(data[hostname].private_ips)}, <br> ${escapeHTML(data[hostname].public_ips)}</td>
+              <td>
+              <a href="#" id="tabids" data-tabid="${escapeHTML(data[hostname].tabId)}">
+              ${escapeHTML(data[hostname].initiator)}</a></td>
+              </tr>`;
+      tbody.innerHTML += tr;
+  });
+}
 chrome.runtime.getBackgroundPage(function (win) {
-  // UI Initialization 
-  document.querySelector(".tabcontent#log_portscan_tab").style.display = "block";
-  document.getElementById("log_ipaccess_tab").dataset.number = ` (${Object.keys(win.requestedIPs).length})`;
-  document.getElementById("log_portscan_tab").dataset.number = ` (${Object.keys(win.portScanMap).length})`;
-  document.getElementById("log_rebinding_tab").dataset.number = ` (${Object.keys(win.reboundedHostnames).length})`;
+
+  function init_ui() {
+    var reqIp_length = Object.keys(win.requestedIPs).length;
+    var portScan_length = Object.keys(win.portScanMap).length;
+    var reboundHost_length = Object.keys(win.reboundHostnamesMap).length;
+
+    // UI Initialization 
+    var first_visible_element;
+
+    document.getElementById("log_ipaccess_tab").dataset.number = ` (${reqIp_length})`;
+    document.getElementById("log_portscan_tab").dataset.number = ` (${portScan_length})`;
+    document.getElementById("log_rebinding_tab").dataset.number = ` (${reboundHost_length})`;
+
+    // Set visibility priority 
+    if (reqIp_length) {
+      first_visible_element = document.getElementById("log_ipaccess_tab");
+    } else if (portScan_length) {
+      first_visible_element = document.getElementById("log_portscan_tab");
+    } else if (reboundHost_length) {
+      first_visible_element = document.getElementById("log_rebinding_tab");
+    } else {
+      first_visible_element = document.getElementById("prefs_tab");
+    }
+    //first_visible_element.style.display = "block";
+    first_visible_element.click()
+  }
 
   /// Threshold Preferences 
   var threshold_el = document.getElementById("threshold");
@@ -54,46 +130,19 @@ chrome.runtime.getBackgroundPage(function (win) {
     document.querySelector(".tabcontent#" + ev.target.id).style.display = "block";
     ev.target.className += " active";
   });
+  
+  init_ui();
+  // Populate data
   showPortScanData(win.portScanMap);
   showIPAccessData(win.requestedIPs);
-  // PortScan Table 
-  function showPortScanData(data) {
-   
-    var tbody = document.querySelector('#log_portscan_tab  tbody');
-    var tr = '<tr>';
-    Object.getOwnPropertyNames(data).forEach(function (port) {
-      Object.getOwnPropertyNames(data[port]).forEach(hostname => {
-        tr += `<td>${port.toString().replace(/</g,"&lt;")}</td>
-              <td>${hostname}</td><td>`;
-        data[port][hostname].forEach(initiator_data => {
-          tr+=`<a href="#" id="tabids" data-tabid="${initiator_data.tabId}">
-              ${initiator_data.initiator_origin.replace(/</g,"&lt;")}</a><br>`;
-        });
-        tr +='</td></tr>';
-      });
-    });
-    tbody.innerHTML = tr;
-  }
+  showReboundData(win.reboundHostnamesMap);
 
-  // IPAccess Table 
-  function showIPAccessData(data) {
-    var tbody = document.querySelector('#log_ipaccess_tab  tbody');
-    var tr = '<tr>';
-    Object.getOwnPropertyNames(data).forEach(function (ip) {
-      for (var i = 0; i < data[ip].length; i++) {
-        tr += `<td>${ip.toString().replace(/</g,"&lt;")}</td>
-              <td><a href="#" id="tabids" data-tabid="${data[ip][i].tabId}">${data[ip][i].initiator.toString().replace(/</g,"&lt;")}</a></td>
-              </tr>`;
-        tbody.innerHTML += tr;
-      }
-    });
-  }
-  
-  document.addEventListener('click', function(ev){
-    if(ev.target.id==="tabids"){
-      console.log(ev.target);
+  document.addEventListener('click', function (ev) {
+    if (ev.target.id === "tabids") {
       //chrome.tabs.highlight({tabs:+ev.target.dataset.tabid});
-      chrome.tabs.update(+ev.target.dataset.tabid,{selected: true});
+      chrome.tabs.update(+ev.target.dataset.tabid, {
+        selected: true
+      });
     }
   });
 
