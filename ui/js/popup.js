@@ -3,7 +3,11 @@ const MAX_PORT = 0xffff;
 const MIN_PORT = 1;
 
 function escapeHTML(str) {
+  if(str)
   return str.toString().replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace().replace(/'/g, "&#39;")
+  else{
+    return "undefined";
+  }
 }
 
 // PortScan Table 
