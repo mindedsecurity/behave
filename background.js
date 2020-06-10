@@ -1,7 +1,7 @@
 // Preference values
 const prefs = getPrefs() || {
   os_notifications_enabled: false,
-  number_of_port_trigger: 3,
+  number_of_port_trigger: 20,
   // TODO : add whitelisted_domains: [],
   DEBUG: true
 };
