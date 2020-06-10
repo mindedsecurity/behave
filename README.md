@@ -1,12 +1,12 @@
 # Behave!
 
-A monitoring browser extension for pages acting as bad boys 
+A *(Still in Development)* monitoring browser extension for pages acting as bad boys 
 
 ## Port Scan Monitoring
 
 Behave! will alert the user if the number of port or protocol used during a browser session exceeds a specific limit.
 
-The limit is 20 by default, but it can be changed by  the user via preferences.
+The limit is 20 by default, but it can be changed by the user via preferences.
 
 Since Behave does not perform any DNS request, 
 
