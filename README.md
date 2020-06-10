@@ -39,7 +39,21 @@ Behave! keeps track if a hostname is resolved with multiple IPs, and will alert 
 and private ones.
 
 
+# Install
 
-## How it works
+Behave! is not yet available on your favourite playstore, so if you want to check and play a bit you can:
 
-TODO.
+* Save the crx from the release
+* Open Google Chrome/Chromium go to chrome://extension 
+* Activate Developer Mode
+* Drag and Drop the CRX Extension
+* Enjoy Behave!
+
+Or:
+
+* Clone it OR download zip and unzip
+* Open Google Chrome/Chromium go to chrome://extension 
+* Activate Developer Mode
+* Push "Load Unpacked" and choose the Behave directory.
+* Enjoy Behave!
+
