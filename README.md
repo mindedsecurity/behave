@@ -43,7 +43,7 @@ and private ones.
 
 Behave! is not yet available on your favourite playstore, so if you want to check and play a bit you can:
 
-* Save the crx from the [release](https://github.com/wisec/behave/releases)
+* Download the CRX from the [release](https://github.com/wisec/behave/releases)
 * Open Google Chrome/Chromium go to chrome://extension 
 * Activate Developer Mode
 * Drag and Drop the CRX Extension
