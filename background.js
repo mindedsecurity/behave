@@ -215,7 +215,9 @@ function debuglog() {
 
 // check for portscan attemps
 function maybePortScan(reqMap) {
-
+  if(reqMap.target_url.port.startsWith("http")){
+    return;
+  }
   if (!portScanMap[reqMap.target_url.port]) {
     portScanMap[reqMap.target_url.port] = Object.create(null);
   }
@@ -233,15 +235,22 @@ function maybePortScan(reqMap) {
 // check for access to private IPs attemps
 function maybeInternalAccess(ip, request) {
   const initiator_hostname = request.initiator_url && request.initiator_url.hostname;
+
   const requested_is_private = is_private_ip(ip);
 
-  // If responding IP is internal and initiator does not match it then we have a problem..maybe
-  if (requested_is_private &&
+  
+  // requesting a hostname resolved to a private IP 
+  if (requested_is_private &&  
+    // and comes from an explicit IPs which is not private
     !is_private_ip(initiator_hostname)
-    // Can't use it because of Rebinding.. ? 
-    // && (request.initiator_url.hostname!==request.target_url.hostname)
+    // and the initiator hostname is different from the target hostname
+     && ((initiator_hostname!==request.target_url.hostname)
+         // OR hostnames are equals by the initiator hostname is already considered a bad boi (resolves multiple mixed IP)
+        || reboundHostnamesMap[initiator_hostname]
+       )
   ) {
-    const msg = `Attempting access to ${ip} from ${request.initiator_url.hostname} !!!!`;
+
+    const msg = `Attempting access to ${ip} from ${initiator_hostname} !!!!`;
     debuglog(msg);
 
     //// Store infos about who and what
@@ -374,33 +383,35 @@ const FILTER_ALL_URLS = {
 };
 
 chrome.webRequest.onBeforeRequest.addListener(function (details) {
+    if(typeof details.initiator === "undefined"){
+      return;
+    }
     if (details.tabId !== -1) {
       debuglog(details);
       const requestInfo = setRequestMap(details);
-
-      // checks for notifications
-      maybePortScan(requestInfo);
-
+      
       const hostname = requestInfo.target_url.hostname;
-      // Altough there's no details.ip, if hostname is an IP
+      // Although there's no details.ip, if hostname is an IP
       // we can check it since the IP is already normalized.
       // Anyway, it won't work with malicious DNS for FQDN (see OnResponseStarted for resolved IPs). 
       if (is_ip(hostname))
         maybeInternalAccess(hostname, requestInfo);
+      
+      // checks for notifications
+      maybePortScan(requestInfo);
+
     }
   }, FILTER_ALL_URLS
   /* ,  ["blocking"] */
 );
 
 chrome.webRequest.onResponseStarted.addListener(function (details) {
-  if (details.tabId !== -1) {
-    const requestInfo = requestMap[details.requestId];
-
+  const requestInfo = requestMap[details.requestId];
+  if (details.tabId !== -1 && requestInfo) {
     debuglog(details, requestInfo);
-
-    maybeInternalAccess(details.ip, requestInfo);
-
+    
     maybeRebinding(details.ip, requestInfo);
+    maybeInternalAccess(details.ip, requestInfo);
 
     delete requestMap[details.requestId];
   }
