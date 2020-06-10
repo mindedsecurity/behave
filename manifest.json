@@ -12,7 +12,7 @@
         "default_popup": "ui/popup.html",
         "default_title": "Behave!"
     },
-    "description": "Bad behavior monitor extension",
+    "description": "A monitoring browser extension for pages acting as bad boys ",
     "author": "Stefano Di Paola",
     "background": {
         "scripts": ["background.js"],
