@@ -22,14 +22,17 @@
             list-style-position: outside;
             white-space: nowrap;
             height: 18px;
-            padding: 5px 15px 3px 5px;
+            border-radius: 3px;
+            padding: 5px 5px 5px 5px;
+            margin: 5px 5px 5px 5px;
+            border: 1pt solid #5555; 
         }
 
         #navbar li:hover {
             border: 1px solid #aecff7;
             -webkit-border-radius: 3px;
             border-radius: 3px;
-            padding: 4px 14px 2px 4px;
+            /*padding: 4px 14px 2px 4px;*/
             background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.6), rgba(230, 237, 246, 0.6));
         }
 
@@ -231,16 +234,16 @@
 
     <div id="prefs_tab" class="tabcontent" >
         <ul id="navbar">
-            <li><label for="threshold">Portscan Treshold</label>
+            <li  title="The notification for portscan will appear only when the # of ports is equal or greater than the treshold"><label for="threshold">Portscan Treshold Alert</label>
                 <input min="3" max="65535" type="number" id="threshold" value="">
             </li>
-            <li>
+            <li  title="Enable/disable window notifications" >
                 <input type="checkbox" name="checkbox" id="notification_enable" class="cm-toggle">
-                <label for="notification_enable">Enable Window Notification </label>
+                <label for="notification_enable" >Enable Window Notification </label>
             </li>
-            <li id="reset_button"><a href="#" title="This will reset all data">Reset Monitor Data</a></li>
-            <li>
-                <input type="checkbox" name="checkbox" id="debug_enable" class="cm-toggle">
+            <li  title="Reset mapped data" id="reset_button"><a href="#">Reset Monitor Data</a></li>
+            <li title="Enable or disable debug logging (It's a dev thing:)">
+                <input type="checkbox" name="checkbox"  id="debug_enable" class="cm-toggle">
                 <label for="debug_enable">Enable Debug Log</label>
             </li>
         </ul>
