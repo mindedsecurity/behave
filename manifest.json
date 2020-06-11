@@ -19,15 +19,12 @@
         "persistent": true
     },
     "incognito": "spanning",
-    "permissions": [
-        "browsingData",
-        "webNavigation",
+    "permissions": [  
         "webRequest",
         "webRequestBlocking",
         "notifications",
         "storage",
-        "<all_urls>",
-        "proxy",
+        "<all_urls>", 
         "tabs"
     ]
 }
