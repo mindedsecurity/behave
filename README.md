@@ -57,3 +57,21 @@ Or:
 * Push "Load Unpacked" and choose the Behave directory.
 * Enjoy Behave!
 
+# Wanna Test Behave! ?
+
+See what happens when you go to one of the following:
+
+Singularity of Origin DNS Rebinding Attack:
+http://rebind.it:8080/manager.html
+
+JavaScript Port Scan:
+http://jsscan.sourceforge.net/jsscan2.html
+
+**Nota Bene:**
+At the moment it won't alert if DNS Rebinding attack is performed on non private IPs such as:
+http://www.alf.nu/BrowserCacheAndDnsRebinding
+
+# Wanna Help? 
+
+You are welcome to help! 
+Feel free to create an Issue or fork the project and make a PR.
