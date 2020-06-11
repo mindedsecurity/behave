@@ -4,6 +4,15 @@
 
 A *(Still in Development)* monitoring browser extension for pages acting as bad boys 
 
+## Introdution
+
+*Behave!* monitors and warn if a web page performs any of following actions:
+
+- DNS Rebinding attacks to Private IPs
+- Access to Private IPs
+- Browser based Port Scan
+
+
 ## Port Scan Monitoring
 
 *Behave!* will alert the user if the number of port or protocol used during a browser session exceeds a specific limit.
