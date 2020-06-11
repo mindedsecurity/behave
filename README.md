@@ -8,9 +8,9 @@ A *(Still in Development)* monitoring browser extension for pages acting as bad 
 
 *Behave!* monitors and warn if a web page performs any of following actions:
 
-- DNS Rebinding attacks to Private IPs
-- Access to Private IPs
 - Browser based Port Scan
+- Access to Private IPs
+- DNS Rebinding attacks to Private IPs
 
 Here's *Behave!* pointing the finger to at.tack.er page in the logs:
 
