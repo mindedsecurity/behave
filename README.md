@@ -1,5 +1,7 @@
 # Behave!
 
+![Behave!Logo](https://user-images.githubusercontent.com/1196560/84408775-d7e64980-ac0c-11ea-87ed-38da5c38ffc6.png)
+
 A *(Still in Development)* monitoring browser extension for pages acting as bad boys 
 
 ## Port Scan Monitoring
