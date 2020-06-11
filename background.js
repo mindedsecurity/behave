@@ -90,11 +90,13 @@ const EVENT_IP = "ip";
 const EVENT_REBIND = "dns";
 
 // Reset Data
-function resetData(){
+function resetData() {
   portScanMap = Object.create(null);
   reboundHostnamesMap = Object.create(null);
   requestedIPMap = Object.create(null);
-  chrome.browserAction.setBadgeText({text:''});
+  chrome.browserAction.setBadgeText({
+    text: ''
+  });
 }
 
 //////////////////////////////////////////////////////////////
@@ -163,6 +165,16 @@ function is_private_ip(ip) {
   return pvt_ip_reg.test(ip);
 }
 
+function isDuplicatePortScan(obj, hostname, initiator_hostname, tabId) {
+  
+  if (typeof obj !== "undefined" && typeof obj[hostname] !== "undefined" && obj[hostname].length > 0) {
+    return obj[hostname].some(el => {
+      return el.initiator === initiator_hostname && el.tabId === tabId;
+    });
+  }
+  return false;
+}
+
 function setRequestMap(details) {
   return requestMap[details.requestId] = {
     tabId: details.tabId,
@@ -223,20 +235,22 @@ function debuglog() {
 
 // check for portscan attemps
 function maybePortScan(reqMap) {
-  if(reqMap.target_url.port.startsWith("http")){
+  if (reqMap.target_url.port.startsWith("http")) {
     return;
   }
-  if (!portScanMap[reqMap.target_url.port]) {
-    portScanMap[reqMap.target_url.port] = Object.create(null);
-  }
-  push(portScanMap[reqMap.target_url.port], reqMap.target_url.hostname, {
+  const initiator_object = {
     initiator: reqMap.initiator_url ? reqMap.initiator_url.hostname : "undefined",
     tabId: reqMap.tabId
-  });
-
-  if (Object.keys(portScanMap).length > prefs.number_of_port_trigger) {
-    debuglog("PortScan!", portScanMap);
-    notify(`There might be a port scan: ${Object.keys(portScanMap).length}`, EVENT_PORTSCAN);
+  };
+  if (!isDuplicatePortScan(portScanMap[reqMap.target_url.port], reqMap.target_url.hostname, initiator_object.initiator, initiator_object.tabId)) {
+    if (!portScanMap[reqMap.target_url.port]) {
+      portScanMap[reqMap.target_url.port] = Object.create(null);
+    }
+    push(portScanMap[reqMap.target_url.port], reqMap.target_url.hostname, initiator_object);
+    if (Object.keys(portScanMap).length > prefs.number_of_port_trigger) {
+      debuglog("PortScan!", portScanMap);
+      notify(`There might be a port scan: ${Object.keys(portScanMap).length}`, EVENT_PORTSCAN);
+    }
   }
 }
 
@@ -246,16 +260,18 @@ function maybeInternalAccess(ip, request) {
 
   const requested_is_private = is_private_ip(ip);
 
-  
+
   // requesting a hostname resolved to a private IP 
-  if (requested_is_private &&  
+  if (requested_is_private &&
     // and comes from an explicit IPs which is not private
     !is_private_ip(initiator_hostname)
     // and the initiator hostname is different from the target hostname
-     && ((initiator_hostname!==request.target_url.hostname)
-         // OR hostnames are equals by the initiator hostname is already considered a bad boi (resolves multiple mixed IP)
-        || reboundHostnamesMap[initiator_hostname]
-       )
+    &&
+    ((initiator_hostname !== request.target_url.hostname)
+      // OR hostnames are equals by the initiator hostname is already considered a bad boi (resolves multiple mixed IP)
+      ||
+      reboundHostnamesMap[initiator_hostname]
+    )
   ) {
 
     const msg = `Attempting access to ${ip} from ${initiator_hostname} !!!!`;
@@ -391,20 +407,20 @@ const FILTER_ALL_URLS = {
 };
 
 chrome.webRequest.onBeforeRequest.addListener(function (details) {
-    if(typeof details.initiator === "undefined"){
+    if (typeof details.initiator === "undefined") {
       return;
     }
     if (details.tabId !== -1) {
       debuglog(details);
       const requestInfo = setRequestMap(details);
-      
+
       const hostname = requestInfo.target_url.hostname;
       // Although there's no details.ip, if hostname is an IP
       // we can check it since the IP is already normalized.
       // Anyway, it won't work with malicious DNS for FQDN (see OnResponseStarted for resolved IPs). 
       if (is_ip(hostname))
         maybeInternalAccess(hostname, requestInfo);
-      
+
       // checks for notifications
       maybePortScan(requestInfo);
 
@@ -417,7 +433,7 @@ chrome.webRequest.onResponseStarted.addListener(function (details) {
   const requestInfo = requestMap[details.requestId];
   if (details.tabId !== -1 && requestInfo) {
     debuglog(details, requestInfo);
-    
+
     maybeRebinding(details.ip, requestInfo);
     maybeInternalAccess(details.ip, requestInfo);
 
