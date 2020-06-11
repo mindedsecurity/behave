@@ -3,9 +3,9 @@ const MAX_PORT = 0xffff;
 const MIN_PORT = 1;
 
 function escapeHTML(str) {
-  if(str)
-  return str.toString().replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace().replace(/'/g, "&#39;")
-  else{
+  if (str)
+    return str.toString().replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace().replace(/'/g, "&#39;")
+  else {
     return "undefined";
   }
 }
@@ -51,19 +51,19 @@ function showReboundData(data) {
   var tbody = document.querySelector('#log_rebinding_tab  tbody');
   var tr = '<tr>';
   Object.getOwnPropertyNames(data).forEach(function (hostname) {
-      tr += `<td>${escapeHTML(hostname)}</td>
+    tr += `<td>${escapeHTML(hostname)}</td>
               <td>${escapeHTML(data[hostname].private_ips)}, <br> ${escapeHTML(data[hostname].public_ips)}</td>
               <td>
               <a href="#" id="tabids" data-tabid="${escapeHTML(data[hostname].tabId)}">
               ${escapeHTML(data[hostname].initiator)}</a></td>
               </tr>`;
-      tbody.innerHTML += tr;
+    tbody.innerHTML += tr;
   });
 }
 chrome.runtime.getBackgroundPage(function (win) {
 
   function init_ui() {
-    var reqIp_length = Object.keys(win.requestedIPs).length;
+    var reqIp_length = Object.keys(win.requestedIPMap).length;
     var portScan_length = Object.keys(win.portScanMap).length;
     var reboundHost_length = Object.keys(win.reboundHostnamesMap).length;
 
@@ -85,7 +85,12 @@ chrome.runtime.getBackgroundPage(function (win) {
       first_visible_element = document.getElementById("prefs_tab");
     }
     //first_visible_element.style.display = "block";
-    first_visible_element.click()
+    first_visible_element.click();
+    // Populate data
+    showPortScanData(win.portScanMap);
+    showIPAccessData(win.requestedIPMap);
+    showReboundData(win.reboundHostnamesMap);
+
   }
 
   /// Threshold Preferences 
@@ -112,6 +117,13 @@ chrome.runtime.getBackgroundPage(function (win) {
     win.setOSNotificationEnabled(ev.target.checked);
   });
 
+  /// Reset Monitor Data Preferences 
+  const reset_button_el = document.getElementById("reset_button");
+  reset_button_el.addEventListener("click", function (ev) {
+    win.resetData();
+    init_ui();
+  });
+  
   /// Debug Preferences 
   var debug_enable_el = document.getElementById("debug_enable");
   debug_enable_el.checked = win.getDebugEnabled();
@@ -134,12 +146,9 @@ chrome.runtime.getBackgroundPage(function (win) {
     document.querySelector(".tabcontent#" + ev.target.id).style.display = "block";
     ev.target.className += " active";
   });
-  
+
   init_ui();
-  // Populate data
-  showPortScanData(win.portScanMap);
-  showIPAccessData(win.requestedIPs);
-  showReboundData(win.reboundHostnamesMap);
+
 
   document.addEventListener('click', function (ev) {
     if (ev.target.id === "tabids") {

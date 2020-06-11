@@ -48,7 +48,7 @@ var resolvedHostnames = Object.create(null);
     ]
   }
  */
-var requestedIPs = Object.create(null);
+var requestedIPMap = Object.create(null);
 
 /**
   {
@@ -88,6 +88,14 @@ const ip_reg = /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/
 const EVENT_PORTSCAN = "ps";
 const EVENT_IP = "ip";
 const EVENT_REBIND = "dns";
+
+// Reset Data
+function resetData(){
+  portScanMap = Object.create(null);
+  reboundHostnamesMap = Object.create(null);
+  requestedIPMap = Object.create(null);
+  chrome.browserAction.setBadgeText({text:''});
+}
 
 //////////////////////////////////////////////////////////////
 // Preferences methods
@@ -184,8 +192,8 @@ function setResolvedHostname(hostname, ip, is_private_ip) {
 function setRequestedIP(ip, request) {
   const initiator_hostname = request.initiator_url && request.initiator_url.hostname;
   //// Store infos about who and what
-  requestedIPs[ip] = requestedIPs[ip] || [];
-  requestedIPs[ip].push({
+  requestedIPMap[ip] = requestedIPMap[ip] || [];
+  requestedIPMap[ip].push({
     initiator: initiator_hostname,
     target: request.target_url.hostname,
     port: request.target_url.port,
@@ -254,8 +262,8 @@ function maybeInternalAccess(ip, request) {
     debuglog(msg);
 
     //// Store infos about who and what
-    // requestedIPs[ip] = requestedIPs[ip] || [];
-    // requestedIPs[ip].push({
+    // requestedIPMap[ip] = requestedIPMap[ip] || [];
+    // requestedIPMap[ip].push({
     //   initiator: initiator_hostname,
     //   tabId: request.tabId
     // });
@@ -327,7 +335,7 @@ function onNotify({
 }
 
 function updateToolTip() {
-  var tooltip_text = `Behave! Ports accessed: ${Object.keys(portScanMap).length}\nPvt IPs: ${Object.keys(requestedIPs)}`
+  var tooltip_text = `Behave! Ports accessed: ${Object.keys(portScanMap).length}\nPvt IPs: ${Object.keys(requestedIPMap)}`
   chrome.browserAction.setTitle({
     title: tooltip_text
   });
@@ -354,7 +362,7 @@ function setBadgeForIP() {
     color: [255, 0, 100, 230]
   });
   chrome.browserAction.setBadgeText({
-    text: "IP !"
+    text: "IP!"
   });
 }
 
