@@ -58,7 +58,9 @@ and private ones.
 
 # Install
 
-*Behave!* is not yet available on your favourite playstore, so if you want to check and play a bit you can:
+Firefox Extension: https://addons.mozilla.org/en-US/firefox/addon/behave/
+
+*Behave!* is not yet available on chrome playstore, so if you want to check and play a bit you can:
 
 * Download the CRX from the [release](https://github.com/wisec/behave/releases)
 * Open Google Chrome/Chromium go to chrome://extension 
