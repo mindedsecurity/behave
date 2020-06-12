@@ -318,7 +318,7 @@ function maybeRebinding(ip, request) {
 //// Actions
 addEventListener("message", onNotify);
 
-var extensionURL = `chrome-extension://${chrome.runtime.id}`;
+var extensionURL = chrome.runtime.getURL('/').slice(0,-1);
 
 function notify(msg, type) {
   postMessage({
@@ -407,6 +407,10 @@ const FILTER_ALL_URLS = {
 };
 
 chrome.webRequest.onBeforeRequest.addListener(function (details) {
+  // Firefox
+   if(typeof browser !== "udenfined" && details.originUrl && typeof details.initiator === "undefined"){
+    details.initiator = details.originUrl ;
+   }
     if (typeof details.initiator === "undefined") {
       return;
     }
