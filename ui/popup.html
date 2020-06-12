@@ -7,7 +7,16 @@
             padding: 0px;
             background: -webkit-linear-gradient(bottom, rgba(234, 238, 243, 0), #ffffff), -webkit-linear-gradient(left, #eaeef3, #eaeef3 50%, #d3d7db);
             min-width: 500px;
+            display: flex;
+            flex-direction: column;
+        }
 
+        .content {
+            flex: 1 0 auto;
+        }
+
+        .footer {
+            flex-shrink: 0;
         }
 
         #navbar {
@@ -25,7 +34,7 @@
             border-radius: 3px;
             padding: 5px 5px 5px 5px;
             margin: 5px 5px 5px 5px;
-            border: 1pt solid #5555; 
+            border: 1pt solid #5555;
         }
 
         #navbar li:hover {
@@ -184,16 +193,16 @@
     <script src="js/popup.js"></script>
 </head>
 
-<body padding="0" margin="0">
-
-    <!-- Tab links -->
-    <div class="tab" id='tab'>
-        <!-- BEWARE! order is inverted... -->
-        <button class="tablinks active" id="prefs_tab" >Prefs</button>
-        <button class="tablinks" data-number="0" id="log_rebinding_tab">Rebinding Logs</button>
-        <button class="tablinks" data-number="0" id="log_portscan_tab">Portscan Logs</button>
-        <button class="tablinks" data-number="0" id="log_ipaccess_tab">IP Access Logs</button>
-    </div>
+<body >
+    <div class="content">
+        <!-- Tab links -->
+        <div class="tab" id='tab'>
+            <!-- BEWARE! order is inverted... -->
+            <button class="tablinks active" id="prefs_tab">Prefs</button>
+            <button class="tablinks" data-number="0" id="log_rebinding_tab">Rebinding Logs</button>
+            <button class="tablinks" data-number="0" id="log_portscan_tab">Portscan Logs</button>
+            <button class="tablinks" data-number="0" id="log_ipaccess_tab">IP Access Logs</button>
+        </div>
 
         <!-- Tab content Rebinding Logs -->
         <div id="log_rebinding_tab" class="tabcontent">
@@ -207,46 +216,54 @@
                 <tbody> </tbody>
             </table>
         </div>
-    <!-- Tab content Portscan Logs -->
-    <div id="log_portscan_tab" class="tabcontent">
-        <table>
-            <thead>
-                <tr>
-                    <th>Port</th>
-                    <th>Host</th>
-                    <th>From Host</th>
-            </thead>
-            <tbody> </tbody>
-        </table>
-    </div>
-    <!-- Tab content Private IP Access Logs -->
-    <div id="log_ipaccess_tab" class="tabcontent">
-        <table>
-            <thead>
-                <tr>
-                    <th>Target IP:Port</th>
-                    <th>Target Host</th>
-                    <th>From Host</th>
-            </thead>
-            <tbody> </tbody>
-        </table>
+        <!-- Tab content Portscan Logs -->
+        <div id="log_portscan_tab" class="tabcontent">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Port</th>
+                        <th>Host</th>
+                        <th>From Host</th>
+                </thead>
+                <tbody> </tbody>
+            </table>
+        </div>
+        <!-- Tab content Private IP Access Logs -->
+        <div id="log_ipaccess_tab" class="tabcontent">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Target IP:Port</th>
+                        <th>Target Host</th>
+                        <th>From Host</th>
+                </thead>
+                <tbody> </tbody>
+            </table>
+        </div>
+
+        <div id="prefs_tab" class="tabcontent">
+            <ul id="navbar">
+                <li
+                    title="The notification for portscan will appear only when the # of ports is equal or greater than the treshold">
+                    <label for="threshold">Portscan Treshold Alert</label>
+                    <input min="3" max="65535" type="number" id="threshold" value="">
+                </li>
+                <li title="Enable/disable window notifications">
+                    <input type="checkbox" name="checkbox" id="notification_enable" class="cm-toggle">
+                    <label for="notification_enable">Enable Window Notification </label>
+                </li>
+                <li title="Reset mapped data" id="reset_button"><a href="#">Reset Monitor Data</a></li>
+                <li title="Enable or disable debug logging (It's a dev thing:)">
+                    <input type="checkbox" name="checkbox" id="debug_enable" class="cm-toggle">
+                    <label for="debug_enable">Enable Debug Log</label>
+                </li>
+            </ul>
+        </div>
     </div>
 
-    <div id="prefs_tab" class="tabcontent" >
-        <ul id="navbar">
-            <li  title="The notification for portscan will appear only when the # of ports is equal or greater than the treshold"><label for="threshold">Portscan Treshold Alert</label>
-                <input min="3" max="65535" type="number" id="threshold" value="">
-            </li>
-            <li  title="Enable/disable window notifications" >
-                <input type="checkbox" name="checkbox" id="notification_enable" class="cm-toggle">
-                <label for="notification_enable" >Enable Window Notification </label>
-            </li>
-            <li  title="Reset mapped data" id="reset_button"><a href="#">Reset Monitor Data</a></li>
-            <li title="Enable or disable debug logging (It's a dev thing:)">
-                <input type="checkbox" name="checkbox"  id="debug_enable" class="cm-toggle">
-                <label for="debug_enable">Enable Debug Log</label>
-            </li>
-        </ul>
+    <div class="footer">
+        <p>Behave! - <a href="https://www.mindedsecurity.com" target="_new">Minded Security</a> - <a target="_new"
+                href="https://github.com/mindedsecurity/behave">Github</a></p>
     </div>
 
 </body>
