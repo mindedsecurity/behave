@@ -60,6 +60,8 @@ function showReboundData(data) {
     tbody.innerHTML += tr;
   });
 }
+
+window.addEventListener('load', function (){
 chrome.runtime.getBackgroundPage(function (win) {
 
   function init_ui() {
@@ -146,7 +148,7 @@ chrome.runtime.getBackgroundPage(function (win) {
     document.querySelector(".tabcontent#" + ev.target.id).style.display = "block";
     ev.target.className += " active";
   });
-
+  
   init_ui();
 
 
@@ -159,4 +161,5 @@ chrome.runtime.getBackgroundPage(function (win) {
     }
   });
 
+});
 });
