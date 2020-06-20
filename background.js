@@ -339,7 +339,7 @@ function onNotify({
       chrome.notifications.create(
         'name-for-notification', {
           type: 'basic',
-          iconUrl: "img/favicon_io/favicon-32x32.png",
+          iconUrl: "img/favicon_io/icon-32x32.png",
           title: "Behave!",
           message: msg
         },
