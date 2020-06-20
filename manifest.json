@@ -5,7 +5,6 @@
     "short_name": "Behave!",
     "author": "Stefano Di Paola",
     "description": "A monitoring browser extension for pages acting as bad boys ",
-    "default_locale": "en",
     "icons": {
         "16": "img/favicon_io/icon-16x16.png",
         "48": "img/favicon_io/icon-16x16.png",
