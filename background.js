@@ -2,8 +2,9 @@
 const prefs = getPrefs() || {
   os_notifications_enabled: false,
   number_of_port_trigger: 20,
+  monitor_enabled: true,
   // TODO : add whitelisted_domains: [],
-  DEBUG: true
+  DEBUG: false
 };
 
 //////////////////////////////////////////////////////////
@@ -97,6 +98,9 @@ function resetData() {
   chrome.browserAction.setBadgeText({
     text: ''
   });
+  if(!getMonitorEnabled()){
+    setBadgeDisabled();
+  }
 }
 
 //////////////////////////////////////////////////////////////
@@ -119,6 +123,23 @@ function setOSNotificationEnabled(value) {
   prefs.os_notifications_enabled = !!value;
   setPrefs();
 }
+// Enable prefs
+function getMonitorEnabled() {
+  return prefs.monitor_enabled;
+}
+
+function setMonitorEnabled(value) {
+  prefs.monitor_enabled = !!value;
+  if(prefs.monitor_enabled){
+    //Enabled, so we remove the Badge content
+    resetBadge();
+  }else{
+    // Disabled then we add a visual reminder 
+    setBadgeDisabled();
+  }
+  setPrefs();
+}
+
 ///////////// Debug prefs
 function getDebugEnabled() {
   return prefs.DEBUG;
@@ -232,6 +253,11 @@ function debuglog() {
 
 ///////////////////////////////////////
 ////// check functions
+
+// returns true when monitoring is enabled
+function shouldMonitor(){
+  return getMonitorEnabled();
+}
 
 // check for portscan attemps
 function maybePortScan(reqMap) {
@@ -399,6 +425,23 @@ function setBadgeForRebinding() {
     text: 'DNS!'
   });
 }
+
+function resetBadge(){
+  // Disabled then we add a visual reminder 
+  chrome.browserAction.setBadgeText({
+    text: ""
+  });
+}
+
+function setBadgeDisabled(){
+  chrome.browserAction.setBadgeBackgroundColor({
+    color: [255, 255, 255, 255]
+  });
+  chrome.browserAction.setBadgeText({
+    text: "\u26d4"
+  });
+}
+
 ///////////////////////////////////////
 /// WebRequest Listeners 
 
@@ -407,40 +450,48 @@ const FILTER_ALL_URLS = {
 };
 
 chrome.webRequest.onBeforeRequest.addListener(function (details) {
-  // Firefox
-   if(typeof browser !== "udenfined" && details.originUrl && typeof details.initiator === "undefined"){
-    details.initiator = details.originUrl ;
-   }
-    if (typeof details.initiator === "undefined") {
-      return;
-    }
-    if (details.tabId !== -1) {
-      debuglog(details);
-      const requestInfo = setRequestMap(details);
+    if (shouldMonitor()) {
+      // Firefox
+      if (typeof browser !== "udenfined" && details.originUrl && typeof details.initiator === "undefined") {
+        details.initiator = details.originUrl;
+      }
+      if (typeof details.initiator === "undefined") {
+        return;
+      }
+      if (details.tabId !== -1) {
+        debuglog(details);
+        const requestInfo = setRequestMap(details);
 
-      const hostname = requestInfo.target_url.hostname;
-      // Although there's no details.ip, if hostname is an IP
-      // we can check it since the IP is already normalized.
-      // Anyway, it won't work with malicious DNS for FQDN (see OnResponseStarted for resolved IPs). 
-      if (is_ip(hostname))
-        maybeInternalAccess(hostname, requestInfo);
+        const hostname = requestInfo.target_url.hostname;
+        // Although there's no details.ip, if hostname is an IP
+        // we can check it since the IP is already normalized.
+        // Anyway, it won't work with malicious DNS for FQDN (see OnResponseStarted for resolved IPs). 
+        if (is_ip(hostname))
+          maybeInternalAccess(hostname, requestInfo);
 
-      // checks for notifications
-      maybePortScan(requestInfo);
+        // checks for notifications
+        maybePortScan(requestInfo);
 
+      }
     }
   }, FILTER_ALL_URLS
   /* ,  ["blocking"] */
 );
 
 chrome.webRequest.onResponseStarted.addListener(function (details) {
-  const requestInfo = requestMap[details.requestId];
-  if (details.tabId !== -1 && requestInfo) {
-    debuglog(details, requestInfo);
+  if (shouldMonitor()) {
+    const requestInfo = requestMap[details.requestId];
+    if (details.tabId !== -1 && requestInfo) {
+      debuglog(details, requestInfo);
 
-    maybeRebinding(details.ip, requestInfo);
-    maybeInternalAccess(details.ip, requestInfo);
+      maybeRebinding(details.ip, requestInfo);
+      maybeInternalAccess(details.ip, requestInfo);
 
-    delete requestMap[details.requestId];
+      delete requestMap[details.requestId];
+    }
   }
 }, FILTER_ALL_URLS);
+
+if(!getMonitorEnabled()){
+  setBadgeDisabled();
+}

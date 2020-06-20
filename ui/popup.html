@@ -22,6 +22,7 @@
         #navbar {
             padding: 4px 4px 4px 30px;
             margin: 0px;
+            font-weight: bold;
         }
 
         #navbar li {
@@ -63,6 +64,7 @@
             -webkit-appearance: none;
             -webkit-tap-highlight-color: transparent;
             position: relative;
+            font-weight: bold;
             border: 0;
             outline: 0;
             cursor: pointer;
@@ -119,6 +121,9 @@
             -moz-transition: ease .2s;
             -o-transition: ease .2s;
         }
+
+
+
     </style>
 
     <style>
@@ -156,6 +161,10 @@
             padding: 6px 12px;
             border: 1px solid #ccc;
             border-top: none;
+        }
+        .tablinks {
+            font-weight: bold;
+            text-decoration: underline;
         }
     </style>
     <style>
@@ -243,19 +252,23 @@
 
         <div id="prefs_tab" class="tabcontent">
             <ul id="navbar">
+                <li title="Enable or disable monitoring.&#10;If disabled the extension won't perform any check/alerts">
+                    <input type="checkbox" name="checkbox" id="monitor_enable" class="cm-toggle">
+                    <label for="monitor_enable">Enable/Disable Monitoring</label>
+                </li>
                 <li
                     title="The notification for portscan will appear only when the # of ports is equal or greater than the treshold">
+                    <input min="3" max="65535" style="width: 10%;" type="number" id="threshold" value="">
                     <label for="threshold">Portscan Treshold Alert</label>
-                    <input min="3" max="65535" type="number" id="threshold" value="">
                 </li>
                 <li title="Enable/disable window notifications">
                     <input type="checkbox" name="checkbox" id="notification_enable" class="cm-toggle">
-                    <label for="notification_enable">Enable Window Notification </label>
+                    <label for="notification_enable">Enable/Disable Window Notification </label>
                 </li>
                 <li title="Reset mapped data" id="reset_button"><a href="#">Reset Monitor Data</a></li>
                 <li title="Enable or disable debug logging (It's a dev thing:)">
                     <input type="checkbox" name="checkbox" id="debug_enable" class="cm-toggle">
-                    <label for="debug_enable">Enable Debug Log</label>
+                    <label for="debug_enable">Enable/Disable Debug Log</label>
                 </li>
             </ul>
         </div>

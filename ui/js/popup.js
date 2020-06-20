@@ -125,13 +125,21 @@ chrome.runtime.getBackgroundPage(function (win) {
     win.resetData();
     init_ui();
   });
-  
+
+  /// Monitoring Preferences 
+  var monitor_enable_el = document.getElementById("monitor_enable");
+  monitor_enable_el.checked = win.getMonitorEnabled();
+  monitor_enable_el.addEventListener("change", function (ev) {
+    win.setMonitorEnabled(ev.target.checked);
+  });
+    
   /// Debug Preferences 
   var debug_enable_el = document.getElementById("debug_enable");
   debug_enable_el.checked = win.getDebugEnabled();
   debug_enable_el.addEventListener("change", function (ev) {
     win.setDebugEnabled(ev.target.checked);
   });
+
 
   // TAB Clicking
   document.getElementById("tab").addEventListener("click", function (ev) {
