@@ -62,21 +62,15 @@ and private ones.
 
 # Install
 
+*Behave!* is available as packed extension on:
+
 Firefox Extension: https://addons.mozilla.org/en-US/firefox/addon/behave/
 
 Chrome Extension: https://chrome.google.com/webstore/detail/mppjbkhgconmemoeagfbgilblohhcica/
 
-*Behave!* is not yet available on chrome playstore, so if you want to check and play a bit you can:
+However, if like you want to play a bit with the code you can:
 
-* Download the CRX from the [release](https://github.com/wisec/behave/releases)
-* Open Google Chrome/Chromium go to chrome://extension 
-* Activate Developer Mode
-* Drag and Drop the CRX Extension
-* Enjoy *Behave!*
-
-Or:
-
-* Clone it OR download zip and unzip
+* Clone it OR download the zip and unzip
 * Open Google Chrome/Chromium go to chrome://extension 
 * Activate Developer Mode
 * Push "Load Unpacked" and choose the Behave directory.
