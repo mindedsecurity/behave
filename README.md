@@ -1,12 +1,15 @@
 # Behave!
-
-![Behave!Logo](https://user-images.githubusercontent.com/1196560/84408775-d7e64980-ac0c-11ea-87ed-38da5c38ffc6.png)
+<img align="right" src="https://user-images.githubusercontent.com/1196560/84408775-d7e64980-ac0c-11ea-87ed-38da5c38ffc6.png">
 
 A *(Still in Development)* monitoring browser extension for pages acting as bad boys.
 
 **NB**: This is the code repository of the project, if you're looking for the packed extensions:
-- Firefox Extension: https://addons.mozilla.org/en-US/firefox/addon/behave/
-- Chrome Extension: https://chrome.google.com/webstore/detail/mppjbkhgconmemoeagfbgilblohhcica/
+
+Firefox: https://addons.mozilla.org/en-US/firefox/addon/behave/
+
+Chrome: https://chrome.google.com/webstore/detail/mppjbkhgconmemoeagfbgilblohhcica/
+
+
 
 ## Introduction.
 
