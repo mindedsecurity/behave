@@ -63,6 +63,7 @@ and private ones.
 # Install
 
 Firefox Extension: https://addons.mozilla.org/en-US/firefox/addon/behave/
+
 Chrome Extension: https://chrome.google.com/webstore/detail/mppjbkhgconmemoeagfbgilblohhcica/
 
 *Behave!* is not yet available on chrome playstore, so if you want to check and play a bit you can:
