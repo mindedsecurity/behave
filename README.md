@@ -41,7 +41,7 @@ Since Behave does not perform any DNS request,
 
 ### DNS Resolution to Private IPs
 
-If a malicious script istructs the Browser to connect to a FQDN whose authoritative DNS resolves to a private IP
+If a malicious script instructs the Browser to connect to a FQDN whose authoritative DNS resolves to a private IP
 *Behave!* checks if the resolved IP is private.
 Anyway, the IP information of a resolved hostname is available only if the port is open.
 
