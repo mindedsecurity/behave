@@ -452,7 +452,7 @@ const FILTER_ALL_URLS = {
 chrome.webRequest.onBeforeRequest.addListener(function (details) {
     if (shouldMonitor()) {
       // Firefox
-      if (typeof browser !== "udenfined" && details.originUrl && typeof details.initiator === "undefined") {
+      if (typeof browser !== "undefined" && details.originUrl && typeof details.initiator === "undefined") {
         details.initiator = details.originUrl;
       }
       if (typeof details.initiator === "undefined") {
