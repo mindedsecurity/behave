@@ -330,7 +330,7 @@ function maybeRebinding(ip, request) {
 
   var foundRebinding = false;
   for (let [host, ips] of Object.entries(resolvedHostnames)) {
-    if (ips.private_ips.length > 0 && ips.public_ips.length > 0) {
+    if (request.target_url.hostname === host && ips.private_ips.length > 0 && ips.public_ips.length > 0) {
       reboundHostnamesMap[host] = {
         private_ips: ips.private_ips,
         public_ips: ips.public_ips,
