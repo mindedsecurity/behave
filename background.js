@@ -98,7 +98,7 @@ function resetData() {
   chrome.browserAction.setBadgeText({
     text: ''
   });
-  if(!getMonitorEnabled()){
+  if (!getMonitorEnabled()) {
     setBadgeDisabled();
   }
 }
@@ -130,10 +130,10 @@ function getMonitorEnabled() {
 
 function setMonitorEnabled(value) {
   prefs.monitor_enabled = !!value;
-  if(prefs.monitor_enabled){
+  if (prefs.monitor_enabled) {
     //Enabled, so we remove the Badge content
     resetBadge();
-  }else{
+  } else {
     // Disabled then we add a visual reminder 
     setBadgeDisabled();
   }
@@ -187,7 +187,7 @@ function is_private_ip(ip) {
 }
 
 function isDuplicatePortScan(obj, hostname, initiator_hostname, tabId) {
-  
+
   if (typeof obj !== "undefined" && typeof obj[hostname] !== "undefined" && obj[hostname].length > 0) {
     return obj[hostname].some(el => {
       return el.initiator === initiator_hostname && el.tabId === tabId;
@@ -255,7 +255,7 @@ function debuglog() {
 ////// check functions
 
 // returns true when monitoring is enabled
-function shouldMonitor(){
+function shouldMonitor() {
   return getMonitorEnabled();
 }
 
@@ -318,6 +318,11 @@ function maybeInternalAccess(ip, request) {
 // Rebinding will trigger on Private IPs only.
 // So http://www.alf.nu/BrowserCacheAndDnsRebinding will not be alerted
 function maybeRebinding(ip, request) {
+  // Workaround for browsers giving null IPs.. I'm looking at you Mr. Firefox!
+  if (!ip) {
+    return;
+  }
+
   const initiator_hostname = request.initiator_url && request.initiator_url.hostname;
   const requested_is_private = is_private_ip(ip);
 
@@ -344,7 +349,7 @@ function maybeRebinding(ip, request) {
 //// Actions
 addEventListener("message", onNotify);
 
-var extensionURL = chrome.runtime.getURL('/').slice(0,-1);
+var extensionURL = chrome.runtime.getURL('/').slice(0, -1);
 
 function notify(msg, type) {
   postMessage({
@@ -426,14 +431,14 @@ function setBadgeForRebinding() {
   });
 }
 
-function resetBadge(){
+function resetBadge() {
   // Disabled then we add a visual reminder 
   chrome.browserAction.setBadgeText({
     text: ""
   });
 }
 
-function setBadgeDisabled(){
+function setBadgeDisabled() {
   chrome.browserAction.setBadgeBackgroundColor({
     color: [255, 255, 255, 255]
   });
@@ -459,7 +464,7 @@ chrome.webRequest.onBeforeRequest.addListener(function (details) {
         return;
       }
       if (details.tabId !== -1) {
-        debuglog(details);
+        debuglog("onBeforeRequest", details);
         const requestInfo = setRequestMap(details);
 
         const hostname = requestInfo.target_url.hostname;
@@ -482,16 +487,24 @@ chrome.webRequest.onResponseStarted.addListener(function (details) {
   if (shouldMonitor()) {
     const requestInfo = requestMap[details.requestId];
     if (details.tabId !== -1 && requestInfo) {
-      debuglog(details, requestInfo);
+      debuglog("onResponseStarted",details, requestInfo);
+      var IP = details.ip;
+      // it might happen on Firefox that ip is null...so let's check if target_url is IP :/
+      // If it's a IP we're ok since it's already normalized
+      if (IP || is_ip(requestInfo.target_url.hostname)) {
+        IP = IP || requestInfo.target_url.hostname;
 
-      maybeRebinding(details.ip, requestInfo);
-      maybeInternalAccess(details.ip, requestInfo);
+        maybeRebinding(IP, requestInfo);
+        maybeInternalAccess(IP, requestInfo);
+      } else {
+        debuglog("onResponseStarted; Why IP is null??", details);
+      }
 
       delete requestMap[details.requestId];
     }
   }
 }, FILTER_ALL_URLS);
 
-if(!getMonitorEnabled()){
+if (!getMonitorEnabled()) {
   setBadgeDisabled();
 }
