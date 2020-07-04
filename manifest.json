@@ -1,7 +1,7 @@
 {
     "manifest_version": 2,
     "name": "Behave!",
-    "version": "0.9.5",
+    "version": "0.9.6",
     "short_name": "Behave!",
     "author": "Stefano Di Paola",
     "description": "A monitoring browser extension for pages acting as bad boys ",
