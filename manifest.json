@@ -7,7 +7,7 @@
     "description": "A monitoring browser extension for pages acting as bad boys ",
     "icons": {
         "16": "img/favicon_io/icon-16x16.png",
-        "48": "img/favicon_io/icon-16x16.png",
+        "48": "img/favicon_io/icon-48x48.png",
         "128": "img/favicon_io/icon-128x128.png"
     },
     "incognito": "spanning",
