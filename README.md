@@ -91,7 +91,7 @@ http://jsscan.sourceforge.net/jsscan2.html
 
 **Nota Bene:**
 At the moment it won't alert if DNS Rebinding attack is performed on non private IPs such as:
-http://www.alf.nu/BrowserCacheAndDnsRebinding
+https://www.alf.nu/BrowserCacheAndDnsRebinding
 
 # Wanna Help? 
 
