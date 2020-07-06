@@ -57,6 +57,14 @@
             list-style-position: inside;
             list-style-image: url(imgs/bullet_tick.png)
         } */
+        
+        @media (prefers-color-scheme: dark) {
+        div#tab.tab, button, div.content, #navbar li a, #navbar li:hover, div.footer {
+            background-color: #313131;
+            color: #bfbfbf;
+            background: #313131;
+        }
+        }
     </style>
     <style>
         /* Toggle Button */
@@ -165,6 +173,13 @@
         .tablinks {
             font-weight: bold;
             text-decoration: underline;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+        .tab button.active {
+            background-color: #4e4e4e;
+            color: #b7b7b7;
+        }
         }
     </style>
     <style>
