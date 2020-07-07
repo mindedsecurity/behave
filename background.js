@@ -95,6 +95,8 @@ function resetData() {
   portScanMap = Object.create(null);
   reboundHostnamesMap = Object.create(null);
   requestedIPMap = Object.create(null);
+  resolvedHostnames = Object.create(null);
+  
   chrome.browserAction.setBadgeText({
     text: ''
   });
