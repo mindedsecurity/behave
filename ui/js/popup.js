@@ -17,7 +17,7 @@ function getFormattedDate(timestamp){
   return `${d.getHours().toString().padStart(2,0)}:${d.getMinutes().toString().padStart(2,0)}:${d.getSeconds().toString().padStart(2,0)}`;
 }
 
-// // PortScan Table 
+// // OLD PortScan Table 
 // function showPortScanData2(data) {
 //   var tbody = document.querySelector('#log_portscan_tab  tbody');
 //   var tr = '<tr>'; 
@@ -37,6 +37,8 @@ function getFormattedDate(timestamp){
 //   });
 //   tbody.innerHTML = tr;
 // }
+
+// PortScan Table 
 
 function arrayFromPortScan(psdata) {
   var array = [];
@@ -68,14 +70,13 @@ function arrayFromPortScan(psdata) {
   return sorted;
 }
 
-// PortScan Table 
 function showPortScanData(data, from) {
   from = parseInt(from) || 0;
   var tbody = document.querySelector('#log_portscan_tab  tbody');
   var tr = '<tr>';
   const end = from + MAX_LINES_PER_PAGES;
   var array = arrayFromPortScan(data);
-  console.log(array, array.slice(from, end), from, end);
+  
   array.slice(from, end).forEach(function (scan_el) {
     tr += `<td>${escapeHTML(scan_el.port)}</td>
               <td>${escapeHTML(scan_el.hostname)}</td>
@@ -94,26 +95,72 @@ function showPortScanData(data, from) {
     if (end >= array.length) {
       next_disabled = "disabled";
     }
-    tbody.innerHTML += `<tr><td colspan="4" > <button id="go_next_ps" ${prev_disabled} data-from="${from-MAX_LINES_PER_PAGES}">Prev</button> <button id="go_next_ps" ${next_disabled} data-from="${end}">Next</button></td></tr>`;
+    tbody.innerHTML += `<tr><td colspan="4" >
+                       <button id="go_next_ps" ${prev_disabled} data-from="${escapeHTML(from-MAX_LINES_PER_PAGES)}">Prev</button>
+                       <button id="go_next_ps" ${next_disabled} data-from="${escapeHTML(end)}">Next</button>
+                       </td></tr>`;
   }
 }
 
 // IPAccess Table 
-function showIPAccessData(data) {
-  var tbody = document.querySelector('#log_ipaccess_tab  tbody');
-  var tr = '<tr>';
-  Object.getOwnPropertyNames(data).forEach(function (ip) {
-    for (var i = 0; i < data[ip].length; i++) {
-      tr += `<td>${escapeHTML(ip+":"+data[ip][i].port)}</td>
-              <td>${escapeHTML(data[ip][i].target)}</td>
-              <td>
-              <a href="#" id="tabids" data-tabid="${escapeHTML(data[ip][i].tabId)}">
-              ${escapeHTML(data[ip][i].initiator)}</a></td>
-              <td>${escapeHTML(getFormattedDate(data[ip][i].timestamp))}</td>
-              </tr>`;
+function arrayFromIPAccess(ipdata) {
+  var array = [];
+  /**
+     *  // [{
+  //   "initiator":
+  //   "tabId"
+  //   port,
+  //   host/ip,
+  //   timestamp:
+  // },..];
+     */
+  Object.getOwnPropertyNames(ipdata).forEach(function (ip) {
+    for (var i = 0; i < ipdata[ip].length; i++) {
+      var ip_el = ipdata[ip][i];
+      array.unshift({
+        ip_port: ip + ":" + ip_el.port,
+        target: ip_el.target,
+        tabId: ip_el.tabId,
+        initiator: ip_el.initiator,
+        timestamp: ip_el.timestamp
+      });
     }
   });
+  var sorted = array.sort(function (a, b) {
+    return b.timestamp - a.timestamp;
+  });
+  return sorted;
+}
+
+function showIPAccessData(data,from) {
+  from = parseInt(from) || 0;
+  var tbody = document.querySelector('#log_ipaccess_tab  tbody');
+  var tr = '<tr>';
+  const end = from + MAX_LINES_PER_PAGES;
+  const array = arrayFromIPAccess(data);
+  array.slice(from, end).forEach(function (scan_el) {
+      tr += `<td>${escapeHTML(scan_el.ip_port)}</td>
+              <td>${escapeHTML(scan_el.target)}</td>
+              <td>
+              <a href="#" id="tabids" data-tabid="${escapeHTML(scan_el.tabId)}">
+              ${escapeHTML(scan_el.initiator)}</a></td>
+              <td>${escapeHTML(getFormattedDate(scan_el.timestamp))}</td>
+              </tr>`;
+  });
   tbody.innerHTML = tr;
+  if (array.length > MAX_LINES_PER_PAGES) {
+    var prev_disabled = "", next_disabled = "";
+    if (from - MAX_LINES_PER_PAGES < 0) {
+      prev_disabled = "disabled";
+    }
+    if (end >= array.length) {
+      next_disabled = "disabled";
+    }
+    tbody.innerHTML += `<tr><td colspan="4" >
+                         <button id="go_next_ip" ${prev_disabled} data-from="${escapeHTML(from-MAX_LINES_PER_PAGES)}">Prev</button>
+                         <button id="go_next_ip" ${next_disabled} data-from="${escapeHTML(end)}">Next</button>
+                         </td></tr>`;
+  }
 }
 
 // Rebind Table 
@@ -132,6 +179,8 @@ function showReboundData(data) {
   tbody.innerHTML = tr;
 }
 
+////////////////////////////////////////////////
+///// On load
 window.addEventListener('load', function (){
 chrome.runtime.getBackgroundPage(function (win) {
 
@@ -248,6 +297,8 @@ chrome.runtime.getBackgroundPage(function (win) {
       });
     } else if(ev.target.id === "go_next_ps"){
       showPortScanData(win.portScanMap ,ev.target.dataset.from);
+    } else if(ev.target.id === "go_next_ip"){
+      showIPAccessData(win.requestedIPMap ,ev.target.dataset.from);
     }
   });
   window.addEventListener('blur',function (){
