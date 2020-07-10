@@ -2,6 +2,8 @@
 const MAX_PORT = 0xffff;
 const MIN_PORT = 1;
 
+const MAX_LINES_PER_PAGES = 20;
+
 function escapeHTML(str) {
   if (str)
     return str.toString().replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace().replace(/'/g, "&#39;")
@@ -15,23 +17,85 @@ function getFormattedDate(timestamp){
   return `${d.getHours().toString().padStart(2,0)}:${d.getMinutes().toString().padStart(2,0)}:${d.getSeconds().toString().padStart(2,0)}`;
 }
 
-// PortScan Table 
-function showPortScanData(data) {
+// // PortScan Table 
+// function showPortScanData2(data) {
+//   var tbody = document.querySelector('#log_portscan_tab  tbody');
+//   var tr = '<tr>'; 
+//   Object.getOwnPropertyNames(data).forEach(function (port) {
+//     Object.getOwnPropertyNames(data[port]).forEach(hostname => {
+//       data[port][hostname].forEach(initiator_data => {
+//         tr += `<td>${escapeHTML(port)}</td>
+//               <td>${escapeHTML(hostname)}</td>
+//               <td>
+//                <a href="#" id="tabids" data-tabid="${escapeHTML(initiator_data.tabId)}">
+//                  ${escapeHTML(initiator_data.initiator)}</a>
+//               </td>
+//               <td>${escapeHTML(getFormattedDate(initiator_data.timestamp))}</td></tr>`;
+//       });
+      
+//     });
+//   });
+//   tbody.innerHTML = tr;
+// }
 
-  var tbody = document.querySelector('#log_portscan_tab  tbody');
-  var tr = '<tr>';
-  Object.getOwnPropertyNames(data).forEach(function (port) {
-    Object.getOwnPropertyNames(data[port]).forEach(hostname => {
-      tr += `<td>${escapeHTML(port)}</td>
-              <td>${escapeHTML(hostname)}</td><td>`;
-      data[port][hostname].forEach(initiator_data => {
-        tr += `<a href="#" id="tabids" data-tabid="${escapeHTML(initiator_data.tabId)}">
-              ${escapeHTML(initiator_data.initiator)}</a> ${escapeHTML(getFormattedDate(initiator_data.timestamp))}<br>`;
+function arrayFromPortScan(psdata) {
+  var array = [];
+  // [{
+  //   "initiator":
+  //   "tabId"
+  //   port,
+  //   host/ip,
+  //   timestamp:
+  // },..];
+
+  Object.getOwnPropertyNames(psdata).forEach(function (port) {
+    Object.getOwnPropertyNames(psdata[port]).forEach(hostname => {
+      psdata[port][hostname].forEach(initiator_data => {
+        array.unshift({
+          tabId: initiator_data.tabId,
+          initiator: initiator_data.initiator,
+          timestamp: initiator_data.timestamp,
+          port,
+          hostname,
+        });
       });
-      tr += '</td></tr>';
+
     });
   });
+  var sorted = array.sort(function (a, b) {
+    return b.timestamp - a.timestamp;
+  });
+  return sorted;
+}
+
+// PortScan Table 
+function showPortScanData(data, from) {
+  from = parseInt(from) || 0;
+  var tbody = document.querySelector('#log_portscan_tab  tbody');
+  var tr = '<tr>';
+  const end = from + MAX_LINES_PER_PAGES;
+  var array = arrayFromPortScan(data);
+  console.log(array, array.slice(from, end), from, end);
+  array.slice(from, end).forEach(function (scan_el) {
+    tr += `<td>${escapeHTML(scan_el.port)}</td>
+              <td>${escapeHTML(scan_el.hostname)}</td>
+              <td>
+               <a href="#" id="tabids" data-tabid="${escapeHTML(scan_el.tabId)}">
+                 ${escapeHTML(scan_el.initiator)}</a>
+              </td>
+              <td>${escapeHTML(getFormattedDate(scan_el.timestamp))}</td></tr>`;
+  });
   tbody.innerHTML = tr;
+  if (array.length > MAX_LINES_PER_PAGES) {
+    var prev_disabled = "", next_disabled = "";
+    if (from - MAX_LINES_PER_PAGES < 0) {
+      prev_disabled = "disabled";
+    }
+    if (end >= array.length) {
+      next_disabled = "disabled";
+    }
+    tbody.innerHTML += `<tr><td colspan="4" > <button id="go_next_ps" ${prev_disabled} data-from="${from-MAX_LINES_PER_PAGES}">Prev</button> <button id="go_next_ps" ${next_disabled} data-from="${end}">Next</button></td></tr>`;
+  }
 }
 
 // IPAccess Table 
@@ -49,7 +113,7 @@ function showIPAccessData(data) {
               </tr>`;
     }
   });
-  tbody.innerHTML += tr;
+  tbody.innerHTML = tr;
 }
 
 // Rebind Table 
@@ -64,42 +128,51 @@ function showReboundData(data) {
               ${escapeHTML(data[hostname].initiator)}</a></td>
               <td>${escapeHTML(getFormattedDate(data[hostname].timestamp))}</td>
               </tr>`;
-    tbody.innerHTML += tr;
-  });
+            });
+  tbody.innerHTML = tr;
 }
 
 window.addEventListener('load', function (){
 chrome.runtime.getBackgroundPage(function (win) {
 
-  function init_ui() {
+  function init_ui(addListener) {
     var reqIp_length = Object.keys(win.requestedIPMap).length;
     var portScan_length = Object.keys(win.portScanMap).length;
     var reboundHost_length = Object.keys(win.reboundHostnamesMap).length;
 
     // UI Initialization 
     var first_visible_element;
-
-    document.getElementById("log_ipaccess_tab").dataset.number = ` (${reqIp_length})`;
-    document.getElementById("log_portscan_tab").dataset.number = ` (${portScan_length})`;
-    document.getElementById("log_rebinding_tab").dataset.number = ` (${reboundHost_length})`;
-
+    var log_ipaccess_tab_el = document.getElementById("log_ipaccess_tab");
+    var log_portscan_tab_el = document.getElementById("log_portscan_tab");
+    var log_rebinding_tab_el = document.getElementById("log_rebinding_tab");
+    
+    log_ipaccess_tab_el.dataset.number = ` (${reqIp_length})`;
+    log_portscan_tab_el.dataset.number = ` (${portScan_length})`;
+    log_rebinding_tab_el.dataset.number = ` (${reboundHost_length})`;
+    if(addListener){
+      // Populate data on click
+      log_ipaccess_tab_el.addEventListener("click", function(){
+        showIPAccessData(win.requestedIPMap);
+      });
+      log_portscan_tab_el.addEventListener("click", function(){
+        showPortScanData(win.portScanMap);
+      });
+      log_rebinding_tab_el.addEventListener("click", function(){
+        showReboundData(win.reboundHostnamesMap);
+      });
+    }
     // Set visibility priority 
     if (reqIp_length) {
-      first_visible_element = document.getElementById("log_ipaccess_tab");
+      first_visible_element =  log_ipaccess_tab_el;
     } else if (portScan_length) {
-      first_visible_element = document.getElementById("log_portscan_tab");
+      first_visible_element = log_portscan_tab_el;   
     } else if (reboundHost_length) {
-      first_visible_element = document.getElementById("log_rebinding_tab");
+      first_visible_element = log_rebinding_tab_el;
     } else {
       first_visible_element = document.getElementById("prefs_tab");
     }
     //first_visible_element.style.display = "block";
     first_visible_element.click();
-    // Populate data
-    showPortScanData(win.portScanMap);
-    showIPAccessData(win.requestedIPMap);
-    showReboundData(win.reboundHostnamesMap);
-
   }
 
   /// Threshold Preferences 
@@ -164,7 +237,7 @@ chrome.runtime.getBackgroundPage(function (win) {
     ev.target.className += " active";
   });
   
-  init_ui();
+  init_ui(true /*sets click Listeners too */);
 
 
   document.addEventListener('click', function (ev) {
@@ -173,8 +246,12 @@ chrome.runtime.getBackgroundPage(function (win) {
       chrome.tabs.update(+ev.target.dataset.tabid, {
         selected: true
       });
+    } else if(ev.target.id === "go_next_ps"){
+      showPortScanData(win.portScanMap ,ev.target.dataset.from);
     }
   });
-
+  window.addEventListener('blur',function (){
+    win.resetBadge();
+  })
 });
 });
