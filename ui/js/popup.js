@@ -10,6 +10,11 @@ function escapeHTML(str) {
   }
 }
 
+function getFormattedDate(timestamp){
+  var d = new Date(timestamp);
+  return `${d.getHours().toString().padStart(2,0)}:${d.getMinutes().toString().padStart(2,0)}:${d.getSeconds().toString().padStart(2,0)}`;
+}
+
 // PortScan Table 
 function showPortScanData(data) {
 
@@ -21,7 +26,7 @@ function showPortScanData(data) {
               <td>${escapeHTML(hostname)}</td><td>`;
       data[port][hostname].forEach(initiator_data => {
         tr += `<a href="#" id="tabids" data-tabid="${escapeHTML(initiator_data.tabId)}">
-              ${escapeHTML(initiator_data.initiator)}</a><br>`;
+              ${escapeHTML(initiator_data.initiator)}</a> ${escapeHTML(getFormattedDate(initiator_data.timestamp))}<br>`;
       });
       tr += '</td></tr>';
     });
@@ -40,10 +45,11 @@ function showIPAccessData(data) {
               <td>
               <a href="#" id="tabids" data-tabid="${escapeHTML(data[ip][i].tabId)}">
               ${escapeHTML(data[ip][i].initiator)}</a></td>
+              <td>${escapeHTML(getFormattedDate(data[ip][i].timestamp))}</td>
               </tr>`;
-      tbody.innerHTML += tr;
     }
   });
+  tbody.innerHTML += tr;
 }
 
 // Rebind Table 
@@ -56,6 +62,7 @@ function showReboundData(data) {
               <td>
               <a href="#" id="tabids" data-tabid="${escapeHTML(data[hostname].tabId)}">
               ${escapeHTML(data[hostname].initiator)}</a></td>
+              <td>${escapeHTML(getFormattedDate(data[hostname].timestamp))}</td>
               </tr>`;
     tbody.innerHTML += tr;
   });

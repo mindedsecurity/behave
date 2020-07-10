@@ -20,7 +20,9 @@ const prefs = getPrefs() || {
        "protocol": "https:"
      },
      "target_url": same as intiator_url,
-     "type": "image"
+     "type": "image",
+     "timestamp": details.timeStamp,
+     "requestId": details.requestId
    }
  */
 var requestMap = Object.create(null);
@@ -43,7 +45,9 @@ var resolvedHostnames = Object.create(null);
         "initiator": initiator_host,
         "target": target_url.hostname,
         "port": target_ip_port,
-        "tabId": XX
+        "tabId": XX,
+        "requestId": request.requestId,
+        "timestamp": request.timestamp
       }
      , ...
     ]
@@ -203,7 +207,9 @@ function setRequestMap(details) {
     tabId: details.tabId,
     type: details.type,
     initiator_url: parseUrl(details.initiator),
-    target_url: parseUrl(details.url)
+    target_url: parseUrl(details.url),
+    timestamp: details.timeStamp,
+    requestId: details.requestId
   };
 }
 
@@ -228,11 +234,14 @@ function setRequestedIP(ip, request) {
   const initiator_hostname = request.initiator_url && request.initiator_url.hostname;
   //// Store infos about who and what
   requestedIPMap[ip] = requestedIPMap[ip] || [];
+  if(requestedIPMap[ip].length === 0 || !requestedIPMap[ip].some(el => request.requestId === el.requestId))
   requestedIPMap[ip].push({
     initiator: initiator_hostname,
     target: request.target_url.hostname,
     port: request.target_url.port,
-    tabId: request.tabId
+    tabId: request.tabId,
+    requestId: request.requestId,
+    timestamp: request.timestamp
   });
 }
 
@@ -268,7 +277,8 @@ function maybePortScan(reqMap) {
   }
   const initiator_object = {
     initiator: reqMap.initiator_url ? reqMap.initiator_url.hostname : "undefined",
-    tabId: reqMap.tabId
+    tabId: reqMap.tabId,
+    timestamp: reqMap.timestamp
   };
   if (!isDuplicatePortScan(portScanMap[reqMap.target_url.port], reqMap.target_url.hostname, initiator_object.initiator, initiator_object.tabId)) {
     if (!portScanMap[reqMap.target_url.port]) {
@@ -337,7 +347,8 @@ function maybeRebinding(ip, request) {
         private_ips: ips.private_ips,
         public_ips: ips.public_ips,
         initiator: initiator_hostname,
-        tabId: request.tabId
+        tabId: request.tabId,
+        timestamp: request.timestamp
       };
       foundRebinding = true;
     }
@@ -445,7 +456,7 @@ function setBadgeDisabled() {
     color: [255, 255, 255, 255]
   });
   chrome.browserAction.setBadgeText({
-    text: "\u26d4"
+    text: "\u26d4" // unicode for (/)
   });
 }
 
