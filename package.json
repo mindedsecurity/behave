@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "zipit":"rm ../behave.zip && zip -r ../behave.zip ./ -x '*.git*'",
+    "zipit":"rm ../behave.zip && zip -r ../behave.zip ./ -x '*.git*' -x '*tests*'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
