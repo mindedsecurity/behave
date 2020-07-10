@@ -57,13 +57,19 @@
             list-style-position: inside;
             list-style-image: url(imgs/bullet_tick.png)
         } */
-        
+
         @media (prefers-color-scheme: dark) {
-        div#tab.tab, button, div.content, #navbar li a, #navbar li:hover, div.footer {
-            background-color: #313131;
-            color: #bfbfbf;
-            background: #313131;
-        }
+
+            div#tab.tab,
+            button,
+            div.content,
+            #navbar li a,
+            #navbar li:hover,
+            div.footer {
+                background-color: #313131;
+                color: #bfbfbf;
+                background: #313131;
+            }
         }
     </style>
     <style>
@@ -129,9 +135,6 @@
             -moz-transition: ease .2s;
             -o-transition: ease .2s;
         }
-
-
-
     </style>
 
     <style>
@@ -170,16 +173,17 @@
             border: 1px solid #ccc;
             border-top: none;
         }
+
         .tablinks {
             font-weight: bold;
             text-decoration: underline;
         }
-        
+
         @media (prefers-color-scheme: dark) {
-        .tab button.active {
-            background-color: #4e4e4e;
-            color: #b7b7b7;
-        }
+            .tab button.active {
+                background-color: #4e4e4e;
+                color: #b7b7b7;
+            }
         }
     </style>
     <style>
@@ -226,7 +230,7 @@
     <script src="js/popup.js"></script>
 </head>
 
-<body >
+<body>
     <div class="content">
         <!-- Tab links -->
         <div class="tab" id='tab'>
@@ -288,8 +292,8 @@
                     <input min="3" max="65535" type="number" id="threshold" value="">
                     <label for="threshold">Portscan Treshold Alert</label>
                 </li>
-                <li title="Enable/disable window notifications">
-                    <input type="checkbox" name="checkbox" id="notification_enable" class="cm-toggle">
+                <li title="Enable/disable window notifications" <input type="checkbox" name="checkbox"
+                    id="notification_enable" class="cm-toggle">
                     <label for="notification_enable">Enable/Disable Window Notification </label>
                 </li>
                 <li title="Reset mapped data" id="reset_button"><a href="#">Reset Monitor Data</a></li>
